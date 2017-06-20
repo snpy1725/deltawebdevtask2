@@ -1,0 +1,2768 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Dungeon Crawler</title>
+
+
+</head>
+<body bgcolor="#43445B">
+<h1>Dungeon Crawler</h1>
+<p id="intro">Welcome Player to the game of the dungeons. Your objective is simple, get to the door on all 3 levels and win. Collecting coins along the way increases your score by 1 unit. Try to avoid the various obstacles in your path like the dragon,fire and lasers or else you'll get fried. You do have powerups like x2 which increases your score by 2 units and fire shields that protect you from the fires. You get a maximum time of 4 minutes for each level.Make sure you reach the end before this else you will have to replay the level.</p>
+<div class="wrap">
+<p id="clock"></p>
+<br><br>
+<p>Your score is :</p>
+<p id="score"></p>
+<p id="powerup"></p>
+<br><br>
+<p id="lives"></p><br><br>
+<p id="firesave"></p><br>
+</div>
+<div class="wrap">
+<canvas id="mycanvas" width="800px" height="800px"></canvas>
+<style type="text/css">
+	* { padding: 0; margin: 0; }
+	canvas { background: #251405; display: block; margin: 0 auto; }
+	p{
+		font-family: cursive;
+		font-size: 250%;
+		color: #24CCC2;
+
+	}
+	h1{
+		font-family: cursive;
+		font-size: 200%;
+		color: #24CCC2;
+		text-align: center;
+	}
+	div.wrap{
+		float: left;
+	}
+	#powerup{
+		font-size: 150%;
+	}
+	#lives{
+		font-size: 180%;
+	}
+	#firesave{
+		font-size: 150%;
+	}
+	
+	#intro
+	{
+		font-size: 120%;
+		color: #1AB64C;
+		font-weight: bold;
+	}
+	#stamina{
+		font-size: 120%;
+	}
+	#staminaintro
+	{
+		font-size: 130%;
+	}
+
+</style>
+<script type="text/javascript">
+var canvas=document.getElementById("mycanvas");
+var ctx=canvas.getContext("2d");var x=0;
+var dx = 2,dy=2; var y = 740;  var tile1 = new Image (); 
+ var posicaoup = 0; var NUM_POSICOES =12;var up=0,down=0,left=0,right=0,posicaoleft=0,posicaoright = 0,posicaodown = 0;
+var rightmove=true,leftmove=true,upmove=true,bottommove=true;
+var score=0;
+var lives=3;
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+var distance;
+var date=Date.now(); var t=[[]];
+for(var r=0;r<850;r++)
+	for(var s=0;s<850;s++)
+t[[r,s]]=0;
+var fire=new Image();
+var coinImage=new Image();
+coinImage.src="coinimage.png";
+
+var nowred=Date.now();var poweruptime;
+var nowblue=Date.now();
+var x2=false;
+var levelone=true,leveltwo=false,levelthree=false;
+var powerupon=[[]];
+for(var r=0;r<850;r++)
+	for(var s=0;s<850;s++)
+powerupon[[r,s]]=0;
+var firearray=[[]];
+for(r=0;r<850;r++)
+	for(s=0;s<850;s++)
+		firearray[[r,s]]=1;
+	var firerescue=[[]];
+	for(r=0;r<850;r++)
+	for(s=0;s<850;s++)
+		firerescue[[r,s]]=0;
+var shield=false;var fireshieldtime;
+document.getElementById("lives").innerHTML="lives :"+lives;
+var dragonnumberx=0,dragonnumbery=0;
+
+
+var dragon=new Image();
+var h=0;
+function drawpowerup(a,b,r)
+{
+	ctx.beginPath();
+ctx.arc(a,b,r,0,Math.PI*2,false);
+ctx.fillStyle="#960760";
+ctx.fill();
+ctx.closePath();
+ctx.beginPath();
+ctx.fillStyle="#12E6F0";
+ctx.fillText("x2",a-(r/2),b);
+ctx.closePath();
+powerupcontrol(a,b,r);
+
+
+}
+function laserblue(a,b,c,d)
+{var d1=Date.now();
+var diff=d1-nowblue;
+var seconds=(Math.floor(diff/1000))%60;
+if(seconds>3&&seconds<=6)
+{
+	ctx.beginPath();
+	ctx.moveTo(a,b);
+	ctx.lineTo(c,d);
+	ctx.lineWidth=5;
+	ctx.strokeStyle="#0517AF";
+	ctx.stroke();
+	ctx.closePath();
+if((x+45>a&&y>=b&&y+45<=d&&x<a)||(y+45>b&&x>=a&&x+45<=c&&y<b))
+{
+	
+	alert("You have been burnt by the laser and lost a life.");
+	lives--;
+	if(levelone)
+	{
+		levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+	}
+	else if(leveltwo)
+	{
+levelone=false;
+		leveltwo=true;
+		x=85;y=80;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+
+
+	}
+	else if(levelthree)
+	{
+		leveltwo=false
+		x=670;y=35;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]==0;h=0;
+
+
+	}
+	document.getElementById("lives").innerHTML="lives: "+lives;
+	if(lives==0)
+		loose();
+}
+
+
+}
+else if(seconds>6)
+	{nowblue=Date.now();
+
+}
+
+}
+
+function drawlaserred(a,b,c,d)
+{
+var d1=Date.now();
+var diff=d1-nowred;
+var seconds=(Math.floor(diff/1000))%60;
+if(seconds>5&&seconds<=10)
+{
+	ctx.beginPath();
+	ctx.moveTo(a,b);
+	ctx.lineTo(c,d);
+	ctx.lineWidth=8;
+	ctx.strokeStyle="#E93B29";
+	ctx.stroke();
+	ctx.closePath();
+if((x+45>a&&y>=b&&y+45<=d&&x<a)||(y+45>b&&x>=a&&x+45<=c&&y<b))
+{
+	
+	alert("You have been burnt by the laser and lost a life.");
+	lives--;
+	if(levelone)
+	{
+		levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+	}
+	else if(leveltwo)
+	{
+levelone=false;
+		leveltwo=true;
+		x=85;y=80;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+
+
+	}
+	else if(levelthree)
+	{
+		leveltwo=false;
+		x=670;y=35;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]==0;h=0;
+
+	}
+	document.getElementById("lives").innerHTML="lives: "+lives;
+	if(lives==0)
+		loose();
+}
+
+
+}
+else if(seconds>10)
+	{nowred=Date.now();
+
+}
+
+
+}
+
+function clearcoin(a,b)
+{   
+if(levelone)
+
+	{ctx.beginPath();
+	ctx.rect(a,b,20,20);
+	ctx.fillStyle="#251405";
+	ctx.fill();
+	ctx.closePath();
+	ctx.fillStyle="#21A221";}
+else if(leveltwo)
+{ctx.beginPath();
+	ctx.rect(a,b,20,20);
+	ctx.fillStyle="#133C23";
+	ctx.fill();
+	ctx.closePath();
+	ctx.fillStyle="#17B3D2";
+
+}
+else if(levelthree)
+{
+	ctx.beginPath();
+	ctx.rect(a,b,20,20);
+	ctx.fillStyle="#000000";
+	ctx.fill();
+	ctx.closePath();
+	ctx.fillStyle="#C9CD36";
+}	
+
+} 
+
+function scoreupdate()
+{if(x2)
+	{score+=2;
+var delay=Date.now()-poweruptime;
+var seconds=(Math.floor(delay/1000))%60;
+document.getElementById("score").innerHTML=score;
+if(seconds>15)
+	x2=false;
+}
+
+	else
+	{score+=1;
+document.getElementById("powerup").innerHTML="";
+	document.getElementById("score").innerHTML=score;}
+}
+r=0;
+function drawcoin(a,b)
+{
+	coin.update();
+	coin.render(a,b);
+	if(((x<a+20&&b>b&&b<y+20&&x>a)||(x+40>a&&b>y&&b<y+20&&x+40<a+20)||(y+40>b&&a>x&&a<x+20&&y+40<b+20)||(y<b+20&&a>x&&a<x+20&&y>b))&&t[[a,b]]==0)
+		{scoreupdate();
+			clearcoin(a,b);t[[a,b]]=1;
+
+
+			}
+
+
+
+}
+function sprite (options) {
+				
+    var that = {};
+    frameIndex = 0,
+        tickCount = 0,
+        ticksPerFrame =  7;
+        numberOfFrames = 10;
+
+
+					
+    that.context = options.context;
+    that.width = options.width;
+    that.height = options.height;
+    that.image = options.image;
+    that.loop = options.loop;
+     that.render = function (a,b) {
+
+        // Draw the animation
+        that.context.drawImage(
+           that.image,
+           frameIndex*that.width,
+           0,
+           that.width,
+           that.height,
+           a,
+           b,
+           that.width/5,
+           that.height/5);
+    };
+    that.update = function () {
+    	
+
+        tickCount += 1;
+			
+        if (tickCount > ticksPerFrame) {
+        
+        	tickCount = 0;
+        	if(frameIndex<numberOfFrames-1){
+            // Go to the next frame
+            frameIndex += 1; 
+        }else if (that.loop) {
+                frameIndex = 0;
+            }
+        }
+    }; 
+
+    return that;
+}
+var coin = sprite({
+    context: ctx,
+    width: 100,
+    height: 100,
+    image: coinImage,
+    loop:true
+});
+function loose()
+{alert("You have lost. Press Ok to start from first again");
+	window.location.reload();
+}
+function clockcontrol()
+{var d1=Date.now();
+distance=d1-date;
+	var minutes =Math.floor((distance/1000)/60);
+	 var seconds=(Math.floor(distance/1000))%60;
+  document.getElementById("clock").innerHTML=minutes + "m" +seconds+"s";
+  if(minutes>3)
+  {
+  
+  	if(levelone)
+  	{alert("You have exceeded the time limit and will have to replay the level");
+ lives--;
+ if(lives==0)
+ 	loose();
+ document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+				for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+		firerescue[[r,s]]==0;h=0;
+
+  	}
+  	else if(leveltwo)
+  	{lives--;
+			if(lives==0)
+				loose();
+  		alert("You have exceeded the time limit and will have to replay the level");
+levelone=false;
+		leveltwo=true;
+		x=85;y=80;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+
+			
+			document.getElementById("lives").innerHTML="lives: "+lives;
+  	}
+  	else if(levelthree)
+  	{
+lives--;
+			if(lives==0)
+				loose();
+  		alert("You have exceeded the time limit and will have to replay the level");
+levelone=false;
+		leveltwo=false;
+		levelthree=true;
+		x=670;y=35;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+		firerescue[[r,s]]==0;h=0;
+			
+
+			
+			document.getElementById("lives").innerHTML="lives: "+lives;
+
+  	}
+
+  }
+  distance--;
+}
+
+function rightallow(a,b,length,height)
+{if(((x+45>a)&&(x+45<a+length))&&(((y>b)&&(y<b+height))||((y+20>b)&&(y+20<b+height))))
+	rightmove=false;
+	
+}
+function upallow(a,b,length,height)
+{
+	if(((y<b+height)&&(y>b))&&((x+45>a)&&(x<a+length)))
+		upmove=false;
+}
+function leftallow(a,b,length,height)
+{
+	if(((x<a+length)&&(x>a))&&(((y<b+height)&&(y>b))||((y+20<b+height)&&(y+20>b))))
+		leftmove=false;
+}
+function downallow(a,b,length,height)
+{
+	if(((y+45>b)&&(y+45<b+height))&&((x+45>a)&&(x<a+length)))
+		bottommove=false;
+}
+function borderdraw(a,b,c,d)
+{
+upallow(a,b,c,d);
+downallow(a,b,c,d);
+rightallow(a,b,c,d);
+leftallow(a,b,c,d);
+}
+function reachnextlevel(a,b,levelnumber)
+{
+if(x>a&&x+40<a+70&&y+40<b+80&&y>b)
+{
+	alert("You have finished this level, on to the next level then. Press 'ok' to continue");
+	if(levelnumber==1)
+	{
+		levelone=false;
+		leveltwo=true;
+		x=85;y=80;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+	}
+	else if(levelnumber==2)
+	{
+		leveltwo=false;
+		levelthree=true;h=0;
+		y=35;
+		x=670;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]==0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]==0;
+			document.getElementById("mycanvas").style.background="#000000";
+
+
+	}
+
+}
+
+}
+function clearpowerup(a,b,r)
+{if(leveltwo)
+	{
+	ctx.beginPath()
+	
+ctx.rect(a-r,b-r,r+r,r+r);
+ctx.fillStyle="#133C23";
+ctx.fill();
+ctx.closePath();
+ctx.fillStyle="#17B3D2"
+}
+else if(levelthree)
+{ctx.beginPath()
+	
+ctx.rect(a-r,b-r,r+r,r+r);
+ctx.fillStyle="#000000";
+ctx.fill();
+ctx.closePath();
+ctx.fillStyle="#C9CD36";
+}
+
+}
+
+function powerupcontrol(a,b,r)
+{
+if((((x<a+r)&&(x+45>a+r)&&(y+20>b-r)&&(y+20<b+r))||((x+45>a-r)&&(x<a-r)&&(y+20>b-r)&&(y+20<b+r))||((y<b+r)&&(y+45>b+r)&&(x+20>a-r)&&(x+20<a+r))||((y+45>b-r)&&(y<b-r)&&(x+20>a-r)&&(x+20<a+r)))&&(powerupon[[a,b]]==0))
+{x2=true;
+powerupon[[a,b]]=1;
+clearpowerup(a,b,r);
+poweruptime=Date.now();
+document.getElementById("powerup").innerHTML="x2 powerup is switched on for 15 seconds";
+}
+
+}
+function drawfireshield()
+{var time=Date.now();
+	var d=time-fireshieldtime;
+	var seconds=(Math.floor(d/1000))%60;
+	if(seconds<30&&h==0)
+	{ctx.beginPath();
+	ctx.arc(x+23,y+23,30,0,Math.PI*2,false);
+	ctx.strokeStyle="#B0B3CB";
+	ctx.stroke();
+	ctx.closePath();
+}
+else
+{shield=false;h++;
+	document.getElementById("firesave").innerHTML="";}
+
+}
+function clearfireimmob(a,b,r)
+{
+ctx.beginPath()
+	
+ctx.rect(a-r,b-r,r+r,r+r);
+if(levelthree)
+ctx.fillStyle="#000000";
+else if(levelone)
+ctx.fillStyle="#251405";
+ctx.fill();
+ctx.closePath();
+
+
+}
+function drawfireimmob(a,b,r)
+{
+	ctx.beginPath()
+	ctx.arc(a,b,r,0,Math.PI*2,false);
+	ctx.fillStyle="#36CD3D";
+	ctx.fill();
+	ctx.fillStyle="red";
+	ctx.font="2px";
+	ctx.fillText("Fire",a-r+6,b-3);
+	ctx.fillText("Shield",a-r+1,b+6);
+			ctx.closePath();
+
+			if((((x<a+r)&&(x+45>a+r)&&(y+20>b-r)&&(y+20<b+r))||((x+45>a-r)&&(x<a-r)&&(y+20>b-r)&&(y+20<b+r))||((y<b+r)&&(y+45>b+r)&&(x+20>a-r)&&(x+20<a+r))||((y+45>b-r)&&(y<b-r)&&(x+20>a-r)&&(x+20<a+r)))&&(firerescue[[a,b]]==0))
+{shield=true;
+firerescue[[a,b]]=1;
+clearfireimmob(a,b,r);
+fireshieldtime=Date.now();
+document.getElementById("firesave").innerHTML="Fire shield activated for 30 seconds";
+h=0;
+drawfireshield();
+
+}				
+
+
+}
+function drawfire(a,b)
+{fire.src="fire"+firearray[[a,b]]+".png";
+	ctx.drawImage(fire,a,b,40,40);
+	if(firearray[[a,b]]==6)
+		firearray[[a,b]]=1;
+	firearray[[a,b]]++;
+
+	if(((x<a+40&&x+45>a+40&&y+20<b+40&&y+20>b)||(x+45>a&&x<a&&y+20<b+40&&y+20>b)||(y<b+40&&y+45>b+40&&x+20<a+40&&x+20>a)||(y+45>b&&y<b&&x+20<a+40&&x+20>a))&&(!shield))
+	{
+alert("You were burned by the fire and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+if(lives==0)
+loose();
+if(levelone)
+{
+	levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+			h=0;
+
+}
+else if(levelthree)
+{leveltwo=false;levelthree=true;
+		x=670;y=35;
+		date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				powerupon[[r,s]]==0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]==0;
+h=0;
+		}
+
+
+
+	}
+
+}
+function end(a,b)
+{
+if(x>a&&x+40<a+70&&y+40<b+80&&y>b)
+	{alert("You finished the game. Congratulations. Your score is "+score+". This game was devoloped by Sudarshan Parthasarathy-cse. Click Ok to play again");
+window.location.reload();}
+}
+function drawfloorthird()
+{
+	ctx.beginPath();
+	ctx.rect(730,0,70,80);
+	ctx.fillStyle="#DF6F1C";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.arc(790,40,5,0,Math.PI*2,false);
+	ctx.fillStyle="#DF1C1C";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.rect(60,720,70,80);
+	end(60,720);
+	ctx.fillStyle="#DF6F1C";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.arc(120,760,5,0,Math.PI*2,false);
+	ctx.fillStyle="#DF1C1C";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.rect(300,80,500,20);
+	ctx.fillStyle="#C9CD36";
+	borderdraw(300,80,500,20);
+	ctx.fill();ctx.rect(150,0,20,100);
+	borderdraw(150,0,20,100);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(55,80,95,20);
+	borderdraw(55,80,95,20);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(55,55,20,25);
+	borderdraw(55,55,20,25);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();
+
+	ctx.rect(0,170,700,25);
+	borderdraw(0,170,700,25);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(0,570,700,25);
+	borderdraw(0,570,700,25);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(450,665,20,135);
+	borderdraw(450,665,20,135);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(590,700,20,100);
+	borderdraw(590,700,20,100);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(610,700,120,20);
+	borderdraw(610,700,120,20);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(530,260,20,90);
+	borderdraw(530,260,20,90);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(550,330,100,20);
+	borderdraw(550,330,100,20);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(630,260,20,90);
+	borderdraw(630,260,20,90);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();
+	ctx.rect(530,420,20,90);
+	borderdraw(530,420,20,90);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(550,420,100,20);
+	borderdraw(550,420,100,20);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();ctx.rect(630,420,20,90);
+	borderdraw(630,420,20,90);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();
+	ctx.rect(0,370,350,20);
+	borderdraw(0,370,350,20);
+	ctx.fillStyle="#C9CD36";
+	ctx.fill();
+
+	ctx.closePath();
+	drawfire(160,760);drawfire(160,720);drawfire(160,680);drawfire(120,660);drawfire(80,660);drawfire(40,660);drawfire(10,720);drawfire(10,760);
+	drawfire(10,680);drawfire(470,690);drawfire(510,690);drawfire(550,690);
+	drawfire(350,530);drawfire(350,490);drawfire(350,450);drawfire(350,410);drawfire(350,370);drawfire(350,330);drawfire(350,290);drawfire(350,250);drawfire(350,210);
+if(powerupon[[35,340]]==0)	
+	drawpowerup(35,340,15);
+else
+	clearpowerup(35,340,15);
+if(powerupon[[35,470]]==0)	
+	drawpowerup(35,470,15);
+else
+	clearpowerup(35,470,15);
+if(powerupon[[108,60]]==0)	
+	drawpowerup(108,60,15);
+else
+	clearpowerup(108,60,15);
+if(t[[670,0]]==0)
+	drawcoin(670,0);
+else
+	clearcoin(670,0);
+if(t[[640,0]]==0)
+	drawcoin(640,0);
+else
+	clearcoin(640,0);
+
+if(t[[610,0]]==0)
+	drawcoin(610,0);
+else
+	clearcoin(610,0);
+
+if(t[[580,0]]==0)
+	drawcoin(580,0);
+else
+	clearcoin(580,0);
+
+if(t[[550,0]]==0)
+	drawcoin(550,0);
+else
+	clearcoin(550,0);
+
+if(t[[520,0]]==0)
+	drawcoin(520,0);
+else
+	clearcoin(520,0);
+if(t[[490,0]]==0)
+	drawcoin(490,0);	
+	else
+	clearcoin(490,0);
+
+if(t[[460,0]]==0)		
+	drawcoin(460,0);
+else
+	clearcoin(460,0);
+if(t[[430,0]]==0)
+		drawcoin(430,0);
+	else
+		clearcoin(430,0);
+if(t[[400,0]]==0)	
+		drawcoin(400,0);
+	else
+		clearcoin(400,0);
+
+if(t[[10,140]]==0)	
+drawcoin(10,140);
+else
+clearcoin(10,140);	
+if(t[[40,140]]==0)
+drawcoin(40,140);
+else
+clearcoin(40,140);
+
+if(t[[70,140]]==0)	
+drawcoin(70,140);
+else
+clearcoin(70,140);
+
+if(t[[100,140]]==0)
+drawcoin(100,140);
+else
+clearcoin(100,140);
+
+if(t[[130,140]]==0)
+drawcoin(130,140);
+else
+clearcoin(130,140);
+if(t[[160,140]]==0)
+drawcoin(160,140);
+else
+clearcoin(160,140);
+
+if(t[[190,140]]==0)
+drawcoin(190,140);
+else
+clearcoin(190,140);
+
+if(t[[220,140]]==0)
+drawcoin(220,140);
+else
+clearcoin(220,140);
+
+if(t[[310,110]]==0)
+drawcoin(310,110);
+else
+clearcoin(310,110);
+if(t[[340,110]]==0)
+drawcoin(340,110);
+else
+clearcoin(340,110);
+
+if(t[[370,110]]==0)
+drawcoin(370,110);
+else
+clearcoin(370,110);
+
+if(t[[400,110]]==0)
+drawcoin(400,110);
+else
+clearcoin(400,110);
+if(t[[430,110]]==0)
+drawcoin(430,110);
+else
+clearcoin(430,110);
+
+if(t[[460,110]]==0)
+drawcoin(460,110);
+else
+clearcoin(460,110);
+
+if(t[[490,110]]==0)
+drawcoin(490,110);
+else
+clearcoin(490,110);
+
+if(t[[520,110]]==0)
+drawcoin(520,110);
+else
+clearcoin(520,110);
+if(t[[550,110]]==0)
+drawcoin(550,110);
+else
+clearcoin(550,110);
+
+if(t[[580,110]]==0)
+drawcoin(580,110);
+else
+clearcoin(580,110);
+
+if(t[[610,110]]==0)
+drawcoin(610,110);
+else
+clearcoin(610,110);
+if(t[[640,110]]==0)
+drawcoin(640,110);
+else
+clearcoin(640,110);
+
+if(t[[670,110]]==0)
+drawcoin(670,110);
+else
+clearcoin(670,110);
+if(t[[20,210]]==0)
+drawcoin(20,210);
+else
+clearcoin(20,210);
+if(t[[50,210]]==0)
+drawcoin(50,210);
+else
+clearcoin(50,210);
+
+if(t[[80,210]]==0)
+drawcoin(80,210);
+else
+clearcoin(80,210);
+if(t[[110,210]]==0)
+drawcoin(110,210);
+else
+clearcoin(110,210);
+
+if(t[[140,210]]==0)
+drawcoin(140,210);
+else
+clearcoin(140,210);
+if(t[[170,210]]==0)
+drawcoin(170,210);
+else
+clearcoin(170,210);
+if(t[[200,210]]==0)
+drawcoin(200,210);
+else
+clearcoin(200,210);
+if(t[[230,210]]==0)
+drawcoin(230,210);
+else
+clearcoin(230,210);
+if(t[[260,210]]==0)
+drawcoin(260,210);
+else
+clearcoin(260,210);
+if(t[[120,280]]==0)
+drawcoin(120,280);
+else
+clearcoin(120,280);
+
+if(t[[150,280]]==0)
+drawcoin(150,280);
+else
+clearcoin(150,280);
+if(t[[180,280]]==0)
+drawcoin(180,280);
+else
+clearcoin(180,280);
+if(t[[210,280]]==0)
+drawcoin(210,280);
+else
+clearcoin(210,280);
+
+if(t[[240,280]]==0)
+drawcoin(240,280);
+else
+clearcoin(240,280);
+if(t[[270,280]]==0)
+drawcoin(270,280);
+else
+clearcoin(270,280);
+
+if(t[[300,280]]==0)
+drawcoin(300,280);
+else
+clearcoin(300,280);
+if(t[[150,400]]==0)
+drawcoin(150,400);
+else
+clearcoin(150,400);
+
+if(t[[180,400]]==0)
+drawcoin(180,400);
+else
+clearcoin(180,400);
+if(t[[210,400]]==0)
+drawcoin(210,400);
+else
+clearcoin(210,400);
+
+if(t[[240,400]]==0)
+drawcoin(240,400);
+else
+clearcoin(240,400);
+if(t[[270,400]]==0)
+drawcoin(270,400);
+else
+clearcoin(270,400);
+
+if(t[[300,400]]==0)
+drawcoin(300,400);
+else
+clearcoin(300,400);
+if(t[[30,530]]==0)
+drawcoin(30,530);
+else
+clearcoin(30,530);
+if(t[[60,530]]==0)
+drawcoin(60,530);
+else
+clearcoin(60,530);
+
+if(t[[90,530]]==0)
+drawcoin(90,530);
+else
+clearcoin(90,530);
+
+if(t[[120,530]]==0)
+drawcoin(120,530);
+else
+clearcoin(120,530);
+if(t[[150,530]]==0)
+drawcoin(150,530);
+else
+clearcoin(150,530);
+
+if(t[[180,530]]==0)
+drawcoin(180,530);
+else
+clearcoin(180,530);
+
+if(t[[210,530]]==0)
+drawcoin(210,530);
+else
+clearcoin(210,530);
+
+if(t[[240,530]]==0)
+drawcoin(240,530);
+else
+clearcoin(240,530);
+
+if(t[[270,530]]==0)
+drawcoin(270,530);
+else
+clearcoin(270,530);
+
+if(t[[300,530]]==0)
+drawcoin(300,530);
+else
+clearcoin(300,530);
+if(t[[600,370]]==0)
+drawcoin(600,370);
+else
+clearcoin(600,370);
+if(t[[570,370]]==0)
+drawcoin(570,370);
+else
+clearcoin(570,370);
+
+if(t[[540,370]]==0)
+drawcoin(540,370);
+else
+clearcoin(540,370);
+
+if(t[[510,370]]==0)
+drawcoin(510,370);
+else
+clearcoin(510,370);
+if(t[[480,370]]==0)
+drawcoin(480,370);
+else
+clearcoin(480,370);
+
+if(t[[450,370]]==0)
+drawcoin(450,370);
+else
+clearcoin(450,370);
+if(t[[630,370]]==0)
+drawcoin(630,370);
+else
+clearcoin(630,370);
+if(t[[660,370]]==0)
+drawcoin(660,370);
+else
+clearcoin(660,370);
+
+if(t[[690,370]]==0)
+drawcoin(690,370);
+else
+clearcoin(690,370);
+
+if(t[[420,640]]==0)
+drawcoin(420,640);
+else
+clearcoin(420,640);
+
+if(t[[390,640]]==0)
+drawcoin(390,640);
+else
+clearcoin(390,640);
+
+if(t[[360,640]]==0)
+drawcoin(360,640);
+else
+clearcoin(360,640);
+if(t[[330,640]]==0)
+drawcoin(330,640);
+else
+clearcoin(330,640);
+
+if(t[[300,640]]==0)
+drawcoin(300,640);	
+else
+clearcoin(300,640);
+if(t[[270,640]]==0)
+drawcoin(270,640);
+else
+clearcoin(270,640);
+if(t[[240,640]]==0)
+drawcoin(240,640);
+else
+clearcoin(240,640);
+if(t[[420,720]]==0)
+drawcoin(420,720);
+else
+clearcoin(420,720);
+if(t[[390,720]]==0)
+drawcoin(390,720);
+else
+clearcoin(390,720);
+if(t[[360,720]]==0)
+drawcoin(360,720);
+else
+clearcoin(360,720);
+if(t[[330,720]]==0)
+drawcoin(330,720);
+else
+clearcoin(330,720);
+
+if(t[[300,720]]==0)
+drawcoin(300,720);
+else
+clearcoin(300,720);
+if(t[[270,720]]==0)
+drawcoin(270,720);
+else
+clearcoin(270,720);
+if(t[[240,720]]==0)
+drawcoin(240,720);
+else
+clearcoin(240,720);
+
+if(t[[760,600]]==0)
+drawcoin(760,600);
+else
+clearcoin(760,600);
+
+if(t[[760,570]]==0)
+drawcoin(760,570);
+else
+clearcoin(760,570);
+if(t[[760,540]]==0)
+drawcoin(760,540);
+else
+clearcoin(760,540);
+
+if(t[[760,510]]==0)
+drawcoin(760,510);
+else
+clearcoin(760,510);
+if(t[[760,630]]==0)
+drawcoin(760,630);
+else
+clearcoin(760,630);
+if(t[[760,660]]==0)
+drawcoin(760,660);
+else
+clearcoin(760,660);
+
+if(t[[760,690]]==0)
+drawcoin(760,690);
+else
+clearcoin(760,690);
+
+if(t[[760,720]]==0)
+drawcoin(760,720);
+else
+clearcoin(760,720);
+if(t[[760,750]]==0)
+drawcoin(760,750);
+else
+clearcoin(760,750);
+if(t[[760,260]]==0)
+drawcoin(760,260);
+else
+clearcoin(760,260);
+if(t[[760,230]]==0)
+drawcoin(760,230);
+else
+clearcoin(760,230);
+if(t[[760,290]]==0)
+drawcoin(760,290);
+else
+clearcoin(760,290);
+
+if(t[[760,320]]==0)
+drawcoin(760,320);
+else
+clearcoin(760,320);
+if(firerescue[[585,300]]==0)
+drawfireimmob(585,300,15);
+else
+{clearfireimmob(585,300,15);
+	drawfireshield();}
+
+if(firerescue[[587,470]]==0)
+drawfireimmob(587,470,15);
+else
+{clearfireimmob(587,470,15);
+	drawfireshield();}
+
+if(firerescue[[640,760]]==0)
+drawfireimmob(640,760,15);
+else
+{clearfireimmob(640,760,15);
+	drawfireshield();}
+if(powerupon[[520,760]]==0)
+drawpowerup(520,760,15);
+else
+clearpowerup(520,760,15);
+drawlaserred(700,180,800,180);
+drawlaserred(725,720,725,800);
+laserblue(460,595,460,665);
+}
+
+function drawfloorsecond()
+{
+	document.getElementById("mycanvas").style.background="#133C23";
+ctx.beginPath();
+	ctx.rect(0,50,70,80);
+	ctx.fillStyle="#DF6F1C";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.arc(60,90,5,0,Math.PI*2,false);
+	ctx.fillStyle="#DF1C1C";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+ctx.rect(0,190,100,20);
+ctx.fillStyle="#17B3D2";
+borderdraw(0,190,100,20);
+ctx.fill();ctx.rect(0,130,200,10);
+borderdraw(0,130,200,10);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+
+
+ctx.rect(170,190,630,20);
+borderdraw(170,190,630,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(200,50,400,20);
+borderdraw(200,50,400,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();ctx.rect(200,120,400,20);
+borderdraw(200,120,400,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(200,70,20,50);
+borderdraw(200,70,20,50);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(0,700,740,20);
+borderdraw(0,700,740,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(80,260,30,390);
+borderdraw(80,260,30,390);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(170,210,20,380);
+borderdraw(170,210,20,380);
+ctx.fillStyle="#17B3D2";
+ctx.fill();ctx.rect(170,650,20,50);
+borderdraw(170,650,20,50);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(690,290,20,410);
+borderdraw(690,290,20,410);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(620,210,20,440);
+borderdraw(620,210,20,440);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(550,290,20,410);
+borderdraw(550,290,20,410);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(480,210,20,440);
+borderdraw(480,210,20,440);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(260,560,20,140);
+borderdraw(260,560,20,140);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(280,560,120,20);
+borderdraw(280,560,120,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(380,480,20,80);
+borderdraw(380,480,20,80);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(170,210,20,380);
+borderdraw(170,210,20,380);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(250,480,130,20);
+borderdraw(250,480,130,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+
+ctx.rect(250,320,20,160);
+borderdraw(250,320,20,160);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(320,210,20,190);
+borderdraw(320,210,20,190);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(340,380,70,20);
+borderdraw(340,380,70,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(410,270,10,130);
+borderdraw(410,270,10,130);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.rect(280,630,130,20);
+borderdraw(280,630,130,20);
+ctx.fillStyle="#17B3D2";
+ctx.fill();
+ctx.closePath();
+ctx.beginPath();
+	ctx.rect(0,720,70,80);
+	ctx.fillStyle="#DF6F1C";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.arc(60,760,5,0,Math.PI*2,false);
+	ctx.fillStyle="#DF1C1C";
+	ctx.fill();
+ctx.closePath();
+reachnextlevel(0,720,2);
+
+if(t[[210,20]]==0)
+drawcoin(210,20);
+else
+clearcoin(210,20);
+if(t[[240,20]]==0)
+drawcoin(240,20);
+else
+clearcoin(240,20);
+
+if(t[[270,20]]==0)
+drawcoin(270,20);
+else
+clearcoin(270,20);
+
+if(t[[300,20]]==0)
+    drawcoin(300,20);
+else
+	clearcoin(300,20);
+
+if(t[[330,20]]==0)
+drawcoin(330,20);
+else
+	clearcoin(330,20);
+if(t[[360,20]]==0)
+drawcoin(360,20);
+else
+clearcoin(360,20);
+
+if(t[[390,20]]==0)
+drawcoin(390,20);
+else
+clearcoin(390,20);
+
+if(t[[420,20]]==0)
+drawcoin(420,20);
+else
+clearcoin(420,20);
+if(t[[450,20]]==0)
+drawcoin(450,20);
+else
+clearcoin(450,20);
+
+if(t[[480,20]]==0)
+drawcoin(480,20);
+else
+clearcoin(480,20);
+
+if(t[[510,20]]==0)
+drawcoin(510,20);
+else
+clearcoin(510,20);
+
+if(t[[540,20]]==0)
+drawcoin(540,20);
+else
+clearcoin(540,20);
+
+if(t[[570,20]]==0)
+drawcoin(570,20);
+else
+clearcoin(570,20);
+if(t[[210,155]]==0)
+drawcoin(210,155);
+else
+clearcoin(210,155);
+if(t[[240,155]]==0)
+drawcoin(240,155);
+else
+clearcoin(240,155);
+if(t[[270,155]]==0)
+drawcoin(270,155);
+else
+clearcoin(270,155);
+
+if(t[[300,155]]==0)
+drawcoin(300,155);
+else
+clearcoin(300,155);
+if(t[[330,155]]==0)
+drawcoin(330,155);
+else
+clearcoin(330,155);
+
+if(t[[360,155]]==0)
+drawcoin(360,155);
+else
+clearcoin(360,155);
+if(t[[390,155]]==0)
+drawcoin(390,155);
+else
+clearcoin(390,155);
+if(t[[420,155]]==0)
+drawcoin(420,155);
+else
+clearcoin(420,155);
+
+if(t[[450,155]]==0)
+drawcoin(450,155);
+else
+clearcoin(450,155);
+
+if(t[[480,155]]==0)
+drawcoin(480,155);
+else
+clearcoin(480,155);
+
+if(t[[510,155]]==0)
+drawcoin(510,155);
+else
+clearcoin(510,155);
+
+if(t[[540,155]]==0)
+drawcoin(540,155);
+else
+clearcoin(540,155);
+if(t[[570,155]]==0)
+drawcoin(570,155);
+else
+clearcoin(570,155);
+
+if(t[[30,155]]==0)
+drawcoin(30,155);
+else
+clearcoin(30,155);
+if(t[[60,155]]==0)
+drawcoin(60,155);
+else
+clearcoin(60,155);
+
+if(t[[10,230]]==0)
+drawcoin(10,230);
+else
+clearcoin(10,230);
+if(t[[10,260]]==0)
+drawcoin(10,260);
+else
+clearcoin(10,260);
+if(t[[10,290]]==0)
+drawcoin(10,290);
+else
+clearcoin(10,290);
+if(t[[10,320]]==0)
+drawcoin(10,320);
+else
+clearcoin(10,320);
+
+if(t[[10,350]]==0)
+drawcoin(10,350);
+else
+clearcoin(10,350);
+if(t[[10,380]]==0)
+drawcoin(10,380);
+else
+clearcoin(10,380);
+if(t[[10,410]]==0)
+drawcoin(10,410);
+else
+clearcoin(10,410);
+if(t[[10,440]]==0)
+drawcoin(10,440);
+else
+clearcoin(10,440);
+if(t[[10,470]]==0)
+drawcoin(10,470);
+else
+clearcoin(10,470);
+if(t[[10,500]]==0)
+drawcoin(10,500);
+else
+clearcoin(10,500);
+if(t[[10,530]]==0)
+drawcoin(10,530);
+else
+clearcoin(10,530);
+if(t[[135,230]]==0)
+drawcoin(135,230);
+else
+clearcoin(135,230);
+if(t[[135,260]]==0)
+drawcoin(135,260);
+else
+clearcoin(135,260);
+if(t[[135,290]]==0)
+drawcoin(135,290);
+else
+clearcoin(135,290);
+if(t[[135,320]]==0)
+drawcoin(135,320);
+else
+clearcoin(135,320);
+if(t[[135,350]]==0)
+drawcoin(135,350);
+else
+clearcoin(135,350);
+if(t[[135,380]]==0)
+drawcoin(135,380);
+else
+clearcoin(135,380);
+if(t[[135,410]]==0)
+drawcoin(135,410);
+else
+clearcoin(135,410);
+if(t[[135,440]]==0)
+drawcoin(135,440);
+else
+clearcoin(135,440);
+if(t[[135,470]]==0)
+drawcoin(135,470);
+else
+clearcoin(135,470);
+if(t[[135,500]]==0)
+drawcoin(135,500);
+else
+clearcoin(135,500);
+if(t[[100,775]]==0)
+drawcoin(100,775);
+else
+clearcoin(100,775);
+if(t[[130,775]]==0)
+drawcoin(130,775);
+else
+clearcoin(130,775);
+if(t[[160,775]]==0)
+drawcoin(160,775);
+else
+clearcoin(160,775);
+if(t[[190,775]]==0)
+drawcoin(190,775);
+else
+clearcoin(190,775);
+if(t[[220,775]]==0)
+drawcoin(220,775);
+else
+clearcoin(220,775);
+if(t[[250,775]]==0)
+drawcoin(250,775);
+else
+clearcoin(250,775);
+if(t[[280,775]]==0)
+drawcoin(280,775);
+else
+clearcoin(280,775);
+if(t[[450,725]]==0)
+drawcoin(450,725);
+else
+clearcoin(450,725);
+if(t[[480,725]]==0)
+drawcoin(480,725);
+else
+clearcoin(480,725);
+if(t[[510,725]]==0)
+drawcoin(510,725);
+else
+clearcoin(510,725);
+if(t[[540,725]]==0)
+drawcoin(540,725);
+else
+clearcoin(540,725);
+if(t[[570,725]]==0)
+drawcoin(570,725);
+else
+clearcoin(570,725);
+if(t[[600,725]]==0)
+drawcoin(600,725);
+else
+clearcoin(600,725);
+if(t[[630,725]]==0)
+drawcoin(630,725);
+else
+clearcoin(630,725);
+if(t[[660,725]]==0)
+drawcoin(660,725);
+else
+clearcoin(660,725);
+if(t[[690,725]]==0)
+drawcoin(690,725);
+else
+clearcoin(690,725);
+if(t[[280,655]]==0)
+drawcoin(280,655);
+else
+clearcoin(280,655);
+if(t[[310,655]]==0)
+drawcoin(310,655);
+else
+clearcoin(310,655);
+if(t[[340,655]]==0)
+drawcoin(340,655);
+else
+clearcoin(340,655);
+
+if(t[[370,655]]==0)
+drawcoin(370,655);
+else
+clearcoin(370,655);
+
+if(t[[400,655]]==0)
+drawcoin(400,655);
+else
+clearcoin(400,655);
+
+if(t[[280,605]]==0)
+drawcoin(280,605);
+else
+clearcoin(280,605);
+if(t[[310,605]]==0)
+drawcoin(310,605);
+else
+clearcoin(310,605);
+if(t[[340,605]]==0)
+drawcoin(340,605);
+else
+clearcoin(340,605);
+if(t[[370,605]]==0)
+drawcoin(370,605);
+else
+clearcoin(370,605);
+if(t[[400,605]]==0)
+drawcoin(400,605);
+else
+clearcoin(400,605);
+
+if(t[[515,605]]==0)
+drawcoin(515,605);
+else
+clearcoin(515,605);
+if(t[[515,575]]==0)
+drawcoin(515,575);
+else
+clearcoin(515,575);
+if(t[[515,545]]==0)
+drawcoin(515,545);
+else
+clearcoin(515,545);
+if(t[[515,515]]==0)
+drawcoin(515,515);
+else
+clearcoin(515,515);
+if(t[[515,485]]==0)
+drawcoin(515,485);
+else
+clearcoin(515,485);
+
+if(t[[515,455]]==0)
+drawcoin(515,455);
+else
+clearcoin(515,455);
+if(t[[515,425]]==0)
+drawcoin(515,425);
+else
+clearcoin(515,425);
+if(t[[515,395]]==0)
+drawcoin(515,395);
+else
+clearcoin(515,395);
+
+if(t[[585,300]]==0)
+drawcoin(585,300);
+else
+clearcoin(585,300);
+if(t[[585,330]]==0)
+drawcoin(585,330);
+else
+clearcoin(585,330);
+if(t[[585,360]]==0)
+drawcoin(585,360);
+else
+clearcoin(585,360);
+if(t[[585,390]]==0)
+drawcoin(585,390);
+else
+clearcoin(585,390);
+if(t[[585,420]]==0)
+drawcoin(585,420);
+else
+clearcoin(585,420);
+if(t[[585,450]]==0)
+drawcoin(585,450);
+else
+clearcoin(585,450);
+if(t[[655,610]]==0)
+drawcoin(655,610);
+else
+clearcoin(655,610);
+if(t[[655,580]]==0)
+drawcoin(655,580);
+else
+clearcoin(655,580);
+if(t[[655,550]]==0)
+drawcoin(655,550);
+else
+clearcoin(655,550);
+if(t[[655,520]]==0)
+drawcoin(655,520);
+else
+clearcoin(655,520);
+if(t[[670,300]]==0)
+drawcoin(660,300);
+else
+clearcoin(660,300);
+
+if(t[[660,330]]==0)
+drawcoin(660,330);
+else
+clearcoin(660,330);
+if(t[[660,360]]==0)
+drawcoin(660,360);
+else
+clearcoin(660,360);
+
+if(t[[660,390]]==0)
+drawcoin(660,390);
+else
+clearcoin(660,390);
+if(t[[755,215]]==0)
+drawcoin(755,215);
+else
+clearcoin(755,215);
+if(t[[755,245]]==0)
+drawcoin(755,245);
+else
+clearcoin(755,245);
+if(t[[755,275]]==0)
+drawcoin(755,275);
+else
+clearcoin(755,275);
+if(t[[755,305]]==0)
+drawcoin(755,305);
+else
+clearcoin(755,305);
+if(t[[755,335]]==0)
+drawcoin(755,335);
+else
+clearcoin(755,335);
+if(t[[755,365]]==0)
+drawcoin(755,365);
+else
+clearcoin(755,365);
+if(t[[755,395]]==0)
+drawcoin(755,395);
+else
+clearcoin(755,395);
+
+if(t[[755,425]]==0)
+drawcoin(755,425);
+else
+clearcoin(755,425);
+
+if(t[[755,455]]==0)
+drawcoin(755,455);
+else
+clearcoin(755,455);
+if(t[[280,455]]==0)
+drawcoin(280,455);
+else
+clearcoin(280,455);
+if(t[[310,455]]==0)
+drawcoin(310,455);
+else
+clearcoin(310,455);
+if(t[[340,455]]==0)
+drawcoin(340,455);
+else
+clearcoin(340,455);
+if(t[[370,455]]==0)
+drawcoin(370,455);
+else
+clearcoin(370,455);
+if(t[[440,215]]==0)
+drawcoin(440,215);
+else
+clearcoin(440,215);
+if(t[[440,245]]==0)
+drawcoin(440,245);
+else
+clearcoin(440,245);
+
+if(t[[440,275]]==0)
+drawcoin(440,275);
+else
+clearcoin(440,275);
+if(t[[440,305]]==0)
+drawcoin(440,305);
+else
+clearcoin(440,305);
+if(t[[440,335]]==0)
+drawcoin(440,335);
+else
+clearcoin(440,335);
+if(t[[440,365]]==0)
+drawcoin(440,365);
+else
+clearcoin(440,365);
+drawlaserred(100,200,170,200);
+drawlaserred(180,590,180,650);
+drawlaserred(740,710,800,710);
+drawlaserred(350,720,350,800);
+laserblue(550,70,550,120);
+drawlaserred(480,70,480,120);
+laserblue(410,70,410,120);
+laserblue(490,650,490,700);
+laserblue(630,650,630,700);
+if(powerupon[[370,350]]==0)
+drawpowerup(370,350,15);
+else
+clearpowerup(370,350,15);
+
+if(powerupon[[250,95]]==0)
+drawpowerup(250,95,15);
+else
+clearpowerup(250,95,15);
+
+if(powerupon[[595,570]]==0)
+drawpowerup(595,570,15);
+else
+clearpowerup(595,570,15);
+
+
+}	
+
+function drawdragonspit(a,b,dragonnumbery)
+{
+if(dragonnumbery==0)
+{
+	ctx.beginPath();
+	ctx.arc(a+140,b+55,15,0,Math.PI*2,false);
+	ctx.fillStyle="#E4DC2C";
+	ctx.fill();
+	ctx.closePath();
+	if(((x<a+155&&x+45>a+155&&y+20>b+40&&y+20<b+70)||(x+45>a+125&&x<a+125&&y+20>b+40&&y+20<b+70)||(y+45>b+40&&y<b+40&&x+20>a+125&&x+20<a+155)||(y<b+70&&y+45>b+70&&x+20>a+125&&x+20<a+155))&&(!shield))
+	{alert("You were burned by the dragon's flames and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+			h=0;
+
+	}
+
+}
+else if(dragonnumbery==2)
+{
+	ctx.beginPath();
+	ctx.arc(a+55,b+140,15,0,Math.PI*2,false);
+	ctx.fillStyle="#E4DC2C";
+	ctx.fill();
+	ctx.closePath();
+	if(((x<a+70&&x+45>a+70&&y+20>b+125&&y+20<b+155)||(x+45>a+40&&x<a+40&&y+20>b+125&&y+20<b+155)||(y+45>b+125&&y<b+125&&x+20>a+40&&x+20<a+70)||(y<b+155&&y+45>b+155&&x+20>a+40&&x+20<a+70))&&(!shield))
+	{alert("You were burned by the dragon's flames and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+			h=0;
+
+	}
+
+}
+else if(dragonnumbery==4)
+{ctx.beginPath();
+	ctx.arc(a-20,b+55,15,0,Math.PI*2,false);
+	ctx.fillStyle="#E4DC2C";
+	ctx.fill();
+	ctx.closePath();
+	if(((x<a-5&&x+45>a-5&&y+20>b+40&&y+20<b+70)||(x+45>a-35&&x<a-35&&y+20>b+40&&y+20<b+70)||(y+45>b+40&&y<b+40&&x+20>a-35&&x+20<a-5)||(y<b+70&&y+45>b+70&&x+20>a-35&&x+20<a-5))&&(!shield))
+	{alert("You were burned by the dragon's flames and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+			h=0;
+
+	}
+}
+else if(dragonnumbery==6)
+{ctx.beginPath();
+	ctx.arc(a+55,b-20,15,0,Math.PI*2,false);
+	ctx.fillStyle="#E4DC2C";
+	ctx.fill();
+	ctx.closePath();
+	if(((x<a+70&&x+45>a+70&&y+20>b-35&&y+20<b-5)||(x+45>a+40&&x<a+40&&y+20>b-35&&y+20<b-5)||(y+45>b-35&&y<b-35&&x+20>a+40&&x+20<a+70)||(y<b-5&&y+45>b-5&&x+20>a+40&&x+20<a+70))&&(!shield))
+	{alert("You were burned by the dragon's flames and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+			h=0;
+
+	}
+
+
+}
+else if(dragonnumbery==1)
+{ctx.beginPath();
+	ctx.arc(a+140,b+100,15,0,Math.PI*2,false);
+	ctx.fillStyle="#E4DC2C";
+	ctx.fill();
+	ctx.closePath();
+	if(((x<a+155&&x+45>a+155&&y+20>b+85&&y+20<b+115)||(x+45>a+125&&x<a+125&&y+20>b+85&&y+20<b+115)||(y+45>b+85&&y<b+85&&x+20>a+125&&x+20<a+155)||(y<b+115&&y+45>b+115&&x+20>a+125&&x+20<a+155))&&(!shield))
+	{alert("You were burned by the dragon's flames and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+			h=0;
+
+	}
+
+
+}
+else if(dragonnumbery==3)
+{
+	ctx.beginPath();
+	ctx.arc(a-20,b+100,15,0,Math.PI*2,false);
+	ctx.fillStyle="#E4DC2C";
+	ctx.fill();
+	ctx.closePath();
+
+	if(((x<a-5&&x+45>a-5&&y+20>b+85&&y+20<b+115)||(x+45>a-35&&x<a-35&&y+20>b+85&&y+20<b+115)||(y+45>b+85&&y<b+85&&x+20>a-35&&x+20<a-5)||(y<b+115&&y+45>b+115&&x+20>a-35&&x+20<a-5))&&(!shield))
+	{alert("You were burned by the dragon's flames and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+h=0;
+	}
+
+}
+else if(dragonnumbery==5)
+{
+	ctx.beginPath();
+	ctx.arc(a-20,b-20,15,0,Math.PI*2,false);
+	ctx.fillStyle="#E4DC2C";
+	ctx.fill();
+	ctx.closePath();
+
+	if(((x<a-5&&x+45>a-5&&y+20>b-35&&y+20<b-5)||(x+45>a-35&&x<a-35&&y+20>b-35&&y+20<b-5)||(y+45>b-35&&y<b-35&&x+20>a-35&&x+20<a-5)||(y<b-5&&y+45>b-5&&x+20>a-35&&x+20<a-5))&&(!shield))
+	{alert("You were burned by the dragon's flames and lost a life.");
+lives--;
+document.getElementById("lives").innerHTML="lives: "+lives;
+levelone=true;
+leveltwo=false;
+x=0;y=740;
+date=Date.now();
+		for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				t[[r,s]]=0;
+			for(r=0;r<850;r++)
+			for(s=0;s<850;s++)
+				firerescue[[r,s]]=0;
+			h=0;
+
+	}
+
+}
+
+
+}
+function drawdragon(a,b)
+{
+dragon.src="dragon2.png";
+
+if(dragonnumberx==10)
+{dragonnumbery++;
+	if(dragonnumbery==8)
+	dragonnumbery=0;
+dragonnumberx=0;
+}
+ctx.drawImage(dragon,75*dragonnumberx,70*dragonnumbery,75,70,a,b,100,100);
+dragonnumberx++;
+}
+
+function drawfloorfirst()
+{	
+	ctx.beginPath();
+	ctx.rect(110,615,30,185);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.closePath();
+	borderdraw(110,615,30,185);
+if(t[[80,700]]==0)
+	drawcoin(80,700);
+else
+	clearcoin(80,700);
+if(t[[80,700]]==0)
+	drawcoin(80,670);
+else
+	clearcoin(80,670);
+if(t[[80,640]]==0)
+	drawcoin(80,640);
+else
+	clearcoin(80,640);
+if(t[[20,570]]==0)
+	drawcoin(20,570);
+else clearcoin(20,570);
+
+if(t[[150,750]]==0)
+	drawcoin(150,750);
+else 
+	clearcoin(150,750);
+if(t[[150,720]]==0)
+	drawcoin(150,720);
+else
+	clearcoin(150,720);
+if(t[[150,690]]==0)
+	drawcoin(150,690);
+else
+	clearcoin(150,690);
+if(t[[20,200]]==0)
+	drawcoin(20,200);
+else
+	clearcoin(20,200);
+if(t[[20,170]]==0)
+	drawcoin(20,170);
+else
+	clearcoin(20,170);
+if(t[[20,140]]==0)
+	drawcoin(20,140);
+else clearcoin(20,140);
+if(t[[20,110]]==0)
+	drawcoin(20,110);
+else
+	clearcoin(20,110);
+if(t[[20,230]]==0)
+	drawcoin(20,230);
+else
+	clearcoin(20,230);
+if(t[[20,260]]==0)
+	drawcoin(20,260);
+else
+	clearcoin(20,260);
+
+if(t[[265,50]]==0)
+	drawcoin(265,50);
+else
+	clearcoin(265,50);
+if(t[[265,80]]==0)
+	drawcoin(265,80);
+else
+	clearcoin(265,80);
+
+if(t[[265,110]]==0)
+	drawcoin(265,110);
+else clearcoin(265,110);
+
+if(t[[265,250]]==0)
+	drawcoin(265,250);
+else
+	clearcoin(265,250);
+
+if(t[[265,280]]==0)
+	drawcoin(265,280);
+else
+	clearcoin(265,280);
+
+if(t[[265,310]]==0)
+	drawcoin(265,310);
+else clearcoin(265,310);
+
+if(t[[265,340]]==0)
+	drawcoin(265,340);
+else
+	clearcoin(265,340);
+
+if(t[[265,370]]==0)
+	drawcoin(265,370);
+else
+	clearcoin(265,370);
+
+if(t[[265,400]]==0)
+	drawcoin(265,400);
+else 
+	clearcoin(265,400);
+
+if(t[[265,430]]==0)
+	drawcoin(265,430);
+else
+	clearcoin(265,430);
+
+if(t[[265,460]]==0)
+	drawcoin(265,460);
+else
+	clearcoin(265,460);
+
+if(t[[265,490]]==0)
+	drawcoin(265,490);
+else
+	clearcoin(265,490);
+
+if(t[[345,380]]==0)
+	drawcoin(345,380);
+else clearcoin(345,380);
+
+if(t[[375,380]]==0)
+	drawcoin(375,380);
+else
+	clearcoin(375,380);
+
+if(t[[405,380]]==0)
+	drawcoin(405,380);
+else
+	clearcoin(405,380);
+
+if(t[[435,380]]==0)
+	drawcoin(435,380);
+else
+	clearcoin(435,380);
+
+if(t[[465,380]]==0)
+	drawcoin(465,380);
+else
+	clearcoin(465,380);
+
+if(t[[330,70]]==0)
+	drawcoin(330,70);
+else
+	clearcoin(330,70);
+
+if(t[[360,70]]==0)
+	drawcoin(360,70);
+else
+	clearcoin(360,70);
+
+if(t[[390,70]]==0)
+	drawcoin(390,70);
+else
+	clearcoin(390,70);
+
+if(t[[420,70]]==0)
+	drawcoin(420,70);
+else
+	clearcoin(420,70);
+
+if(t[[450,70]]==0)
+	drawcoin(450,70);
+else
+	clearcoin(450,70);
+
+if(t[[440,190]]==0)
+	drawcoin(440,190);
+else
+	clearcoin(440,190);
+
+if(t[[410,190]]==0)
+	drawcoin(410,190);
+else
+	clearcoin(410,190);
+
+if(t[[470,190]]==0)
+	drawcoin(470,190);
+else
+	clearcoin(470,190);
+	ctx.beginPath();
+	ctx.rect(55,585,85,30);
+	borderdraw(55,585,85,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(55,400,30,185);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.closePath();
+		borderdraw(55,400,30,185);
+if(t[[20,420]]==0)		
+		drawcoin(20,420);
+	else
+		clearcoin(20,420);
+if(t[[20,450]]==0)	
+		drawcoin(20,450);
+	else
+		clearcoin(20,450);
+if(t[[20,480]]==0)
+		drawcoin(20,480);
+	else
+		clearcoin(20,480);
+	if(t[[20,510]]==0)
+		drawcoin(20,510);
+	else
+		clearcoin(20,510);
+
+if(t[[20,540]]==0)
+		drawcoin(20,540);
+	else
+		clearcoin(20,540);
+if(t[[90,420]]==0)	
+	    drawcoin(90,420);
+	else
+		clearcoin(90,420);
+if(t[[90,450]]==0)	
+	    drawcoin(90,450);
+	else
+		clearcoin(90,450);
+if(t[[90,480]]==0)	
+	    drawcoin(90,480);
+	else
+		clearcoin(90,480);
+	if(t[[90,510]]==0)
+	    drawcoin(90,510);
+	else
+		clearcoin(90,510);
+if(t[[230,630]]==0)	
+	    drawcoin(230,630);
+	else
+		clearcoin(230,630);
+if(t[[230,630]]==0)	
+	    drawcoin(260,630);
+	else
+		clearcoin(260,630);
+if(t[[290,630]]==0)	
+	    drawcoin(290,630);
+	else
+		clearcoin(290,630);
+if(t[[320,630]]==0)	
+	    drawcoin(320,630);
+	else
+		clearcoin(320,630);
+if(t[[350,630]]==0)	
+	    drawcoin(350,630);
+	else
+		clearcoin(350,630);
+if(t[[230,700]]==0)	
+	    drawcoin(230,700);
+	else
+		clearcoin(230,700);
+if(t[[260,700]]==0)	
+	    drawcoin(260,700);
+	else
+		clearcoin(260,700);
+if(t[[290,700]]==0)	
+	    drawcoin(290,700);
+	else
+		clearcoin(290,700);
+if(t[[320,700]]==0)	
+	    drawcoin(320,700);
+	else
+		clearcoin(320,700);
+	ctx.beginPath();
+	ctx.rect(55,370,115,30);
+	borderdraw(55,370,115,30);//test here
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(55,295,115,15);
+	borderdraw(55,295,115,15);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(55,60,30,235);
+	borderdraw(55,60,30,235);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(55,60,135,30);
+	borderdraw(55,60,135,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(190,60,30,70);
+	borderdraw(190,60,30,70);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(145,180,145,8);
+	borderdraw(145,180,145,8);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(145,230,180,8);
+	borderdraw(145,230,180,8);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(145,188,8,50);
+	borderdraw(145,188,8,50);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(230,238,30,377);
+	borderdraw(230,238,30,377);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(260,585,170,30);
+	borderdraw(260,585,170,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(190,665,30,135);
+	borderdraw(190,665,30,135);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(220,665,210,30);
+	borderdraw(220,665,210,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(480,505,30,295);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.closePath();
+	borderdraw(480,505,30,295);
+if(t[[520,740]]==0)	
+	drawcoin(520,740);
+else
+	clearcoin(520,740);
+if(t[[520,710]]==0)
+	drawcoin(520,710);
+else
+	clearcoin(520,710);
+if(t[[520,680]]==0)
+	drawcoin(520,680);
+else
+	clearcoin(520,680);
+if(t[[520,650]]==0)
+	drawcoin(520,650);
+else
+	clearcoin(520,650);
+if(t[[520,620]]==0)
+	drawcoin(520,620);
+else
+	clearcoin(520,620);
+if(t[[520,590]]==0)
+	drawcoin(520,590);
+else
+	clearcoin(520,590);
+if(t[[520,560]]==0)
+	drawcoin(520,560);
+else
+	clearcoin(520,560);
+if(t[[520,530]]==0)
+	drawcoin(520,530);
+else
+	clearcoin(520,530);
+if(t[[490,485]]==0)
+	drawcoin(490,485);
+else
+	clearcoin(490,485);
+if(t[[460,485]]==0)
+	drawcoin(460,485);
+else
+	clearcoin(460,485);
+if(t[[430,485]]==0)
+	drawcoin(430,485);
+else
+	clearcoin(430,485);
+if(t[[400,485]]==0)
+	drawcoin(400,485);
+else
+	clearcoin(400,485);
+	ctx.beginPath();
+	ctx.rect(340,505,140,30);
+	borderdraw(340,505,140,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.rect(340,405,30,100);
+	borderdraw(340,405,30,100);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(370,405,170,30);
+	borderdraw(370,405,170,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(290,40,30,148);
+	borderdraw(290,40,30,148);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(290,40,325,30);
+	borderdraw(290,40,325,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(522,70,8,150);
+	borderdraw(522,70,8,150);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(392,212,130,8);
+	borderdraw(392,212,130,8);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(392,132,8,82);
+	borderdraw(392,132,8,82);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(400,132,60,8);
+	borderdraw(400,132,60,8);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(665,0,135,30);
+	borderdraw(665,0,135,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(710,30,20,300);
+		ctx.fillStyle="#21A221";
+	ctx.fill();ctx.closePath();
+	borderdraw(710,30,20,300);
+	if(t[[685,40]]==0)
+	drawcoin(685,40);
+else
+	clearcoin(685,40);
+if(t[[685,70]]==0)
+	drawcoin(685,70);
+else
+	clearcoin(685,70);
+if(t[[685,100]]==0)
+	drawcoin(685,100);
+else
+	clearcoin(685,100);
+if(t[[685,130]]==0)
+	drawcoin(685,130);
+else
+	clearcoin(685,130);
+if(t[[685,170]]==0)
+	drawcoin(685,170);
+else
+	clearcoin(685,170);
+if(t[[750,160]]==0)
+	drawcoin(750,160);
+else
+	clearcoin(750,160);
+if(t[[750,190]]==0)
+	drawcoin(750,190);
+else
+	clearcoin(750,190);
+if(t[[750,220]]==0)
+	drawcoin(750,220);
+else
+	clearcoin(750,220);
+if(t[[750,250]]==0)
+	drawcoin(750,250);
+else
+	clearcoin(750,250);
+	ctx.beginPath();
+ctx.rect(600,400,15,400);
+ctx.fillStyle="#21A221";
+	ctx.fill();ctx.closePath();
+if(t[[625,410]]==0)	
+drawcoin(625,410);
+else
+clearcoin(625,410);
+if(t[[625,440]]==0)
+drawcoin(625,440);
+else
+clearcoin(625,440);
+if(t[[625,470]]==0)
+drawcoin(625,470);
+else
+clearcoin(625,470);
+if(t[[625,500]]==0)
+drawcoin(625,500);
+else clearcoin(625,500);
+if(t[[625,530]]==0)
+drawcoin(625,530);
+else
+clearcoin(625,530);
+	borderdraw(600,400,15,400);
+	if(t[[625,410]]==0)
+	drawcoin(625,410);
+else
+	clearcoin(625,410);
+	ctx.beginPath();
+	ctx.rect(615,770,185,30);
+	borderdraw(615,770,185,30);
+
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(770,400,30,370);
+	borderdraw(770,400,30,370);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(695,400,75,30);
+	borderdraw(695,400,75,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(665,585,135,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.closePath();
+	borderdraw(665,585,135,30);
+	if(t[[670,625]]==0)
+	drawcoin(670,625);
+else
+	clearcoin(670,625);
+if(t[[700,625]]==0)
+	drawcoin(700,625);
+else
+	clearcoin(700,625);
+if(t[[730,625]]==0)
+	drawcoin(730,625);
+else
+	clearcoin(730,625);
+if(t[[740,655]]==0)
+	drawcoin(740,655);
+else
+	clearcoin(740,655);
+if(t[[740,685]]==0)
+	drawcoin(740,685);
+else
+clearcoin(740,685);
+if(t[[740,715]]==0)
+	drawcoin(740,715);
+else
+	clearcoin(740,715);
+if(t[[740,745]]==0)
+	drawcoin(740,745);
+else
+	clearcoin(740,745);
+	ctx.beginPath();
+	ctx.rect(510,305,30,100);
+	borderdraw(510,305,30,100);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(540,305,40,30);
+	borderdraw(540,305,40,30);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(580,185,30,150);
+	borderdraw(580,185,30,150);
+	ctx.fillStyle="#21A221";
+	ctx.fill();ctx.rect(610,185,50,10);
+	borderdraw(610,185,50,10);
+	ctx.fillStyle="#21A221";
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.rect(730,30,70,80);
+
+	ctx.fillStyle="#DF6F1C";
+	ctx.fill();
+	ctx.closePath();
+
+	ctx.beginPath();
+	ctx.arc(790,70,5,0,Math.PI*2,false);
+	ctx.fillStyle="#DF1C1C";
+	ctx.fill();
+	ctx.closePath();
+	reachnextlevel(730,30,1);
+	drawdragon(370,270);
+	borderdraw(370,270,100,100);
+	drawdragonspit(370,270,dragonnumbery);
+	drawfire(300,760);
+
+	drawfire(340,760);
+	drawfire(260,760);
+	drawfire(380,760);
+	drawfire(420,760);
+	drawfire(340,0);
+	drawfire(300,420);
+	drawfire(260,420);
+	if(firerescue[[320,520]]==0)
+	drawfireimmob(320,520,15);
+else
+{
+	clearfireimmob(320,520,15);
+	drawfireshield();
+}
+
+
+}
+
+function keyDownHandler(e){
+if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();}
+
+    switch (e.keyCode) {
+case 38:if(y-dy>0&&upmove)
+{
+	y-=dy;
+	posicaoup++;
+	if(posicaoup==NUM_POSICOES)
+		{posicaoup=1;up=0;}
+
+	up++; rightmove=true;leftmove=true;bottommove=true;
+}break;
+case 40: if(y+dy+45<canvas.height&&bottommove)
+{
+	y+=dy;
+	posicaodown++;
+	if(posicaodown==NUM_POSICOES)
+		{posicaodown=1;down=0;}
+	down++;upmove=true;rightmove=true;leftmove=true;
+}break;
+case 37:if(x-dx>0&&leftmove)
+{
+	x-=dx;
+	posicaoleft++;
+	if(posicaoleft==NUM_POSICOES)
+		{posicaoleft=1;left=0;}
+	left++;
+	rightmove=true;upmove=true;bottommove=true;
+}break;
+case 39:if(x+dx+45<canvas.width&&rightmove)
+{
+
+	x+=dx;
+	posicaoright++;
+upmove=true;
+	if(posicaoright==NUM_POSICOES)
+		{posicaoright=1;right=0;}
+
+	right++;leftmove=true;rightmove=true;bottommove=true;
+
+
+}break;
+
+}}
+function keyUpHandler(e)
+{
+	switch(e.keyCode)
+	{
+		case 38: up=0;posicaoup=1;
+		break;
+		case 40 : down=0;posicaodown=1;
+		break;
+		case 37: left=0; posicaoleft=1;
+		break;
+		case 39: right=0;posicaoright=1;
+		break;
+	}
+}
+
+
+
+function Drawman() { 
+
+if(up==0&&down==0&&left==0&&right==0)
+	{tile1.src="spriteup1.png";
+ctx.drawImage(tile1,x,y,45,45);
+
+
+}
+
+if(up>0)
+	{tile1.src = "spriteup"+posicaoup+".png"; 
+ctx.drawImage(tile1, x, y,45,45);}
+else if(down>0)
+{
+	tile1.src = "spritedown"+posicaodown+".png"; 
+ctx.drawImage(tile1, x, y,45,45);
+}
+else if(left>0)
+{
+tile1.src = "spriteleft"+posicaoleft+".png"; 
+ctx.drawImage(tile1, x, y,45,45);	
+}
+else if(right>0)
+{
+	tile1.src = "spriteright"+posicaoright+".png"; 
+ctx.drawImage(tile1, x, y,45,45);
+
+
+}
+
+ }
+
+
+	
+function draw()
+{ctx.clearRect(0,0,canvas.width,canvas.height);
+if(levelone)
+	drawfloorfirst();
+else if(leveltwo)
+	drawfloorsecond();
+else if(levelthree)
+	drawfloorthird();
+	Drawman();
+	clockcontrol();
+
+	
+	requestAnimationFrame(draw);
+}
+
+draw();
+
+</script>
+</div>
+<embed loop="true" src="bgm.mp3" hidden="true" type="audio/mpeg"></embed>
+</body>
+</html>
